@@ -5,3 +5,6 @@ build:
 
 run:
 	@./bin/api
+
+dev:
+	@go run cmd/api/main.go
