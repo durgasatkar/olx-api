@@ -3,8 +3,6 @@
 build:
 	@go build -o bin/api ./cmd/api
 
-run:
-	@./bin/api
 
-dev:
-	@go run cmd/api/main.go
+run:build
+	@./bin/api

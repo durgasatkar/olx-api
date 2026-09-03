@@ -1,0 +1,38 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go_olx_api
+    restart: always
+    ports:
+      - "8089:8089" # Maps local port 8089 to container port 8089
+    env_file:
+      - .env # Automatically injects PORT and ENV into the container
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/olx-api
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=olx-api
+    ports:
+      - "5432:5432" # Allows you to still connect via pgAdmin/DBeaver locally
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d olx-api"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_dev_data:
