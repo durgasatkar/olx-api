@@ -12,14 +12,15 @@ import (
 
 func main() {
 	cfg := config.MustLoad()
-	_, err := db.Connect(cfg.DatabaseUrl)
+	db, err := db.Connect(cfg.DatabaseUrl)
 	if err != nil {
 		log.Fatalf("main.db.connect: %v", err)
 	}
 	mux := http.NewServeMux()
-
+	lh := handlers.NewListingHandler(db)
 	mux.HandleFunc("GET /healthz", handlers.Health)
-
+	mux.HandleFunc("GET /listings", lh.GetListings)
+	mux.HandleFunc("DELETE /listings/{id}", lh.DeleteListing)
 	srv := http.Server{
 		Addr:         ":" + cfg.Port,
 		Handler:      mux,

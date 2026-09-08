@@ -1,0 +1,1 @@
+ALTER TABLE listings ADD COLUMN status text NOT NULL DEFAULT 'active';
