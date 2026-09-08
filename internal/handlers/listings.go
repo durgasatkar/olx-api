@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -19,12 +19,14 @@ type listing struct {
 }
 
 type ListingHandler struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *slog.Logger
 }
 
-func NewListingHandler(db *sql.DB) *ListingHandler {
+func NewListingHandler(db *sql.DB, logger *slog.Logger) *ListingHandler {
 	return &ListingHandler{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
@@ -36,7 +38,7 @@ func (lh ListingHandler) GetListings(w http.ResponseWriter, r *http.Request) {
 		ORDER BY created_at DESC 
 		LIMIT 10`)
 	if err != nil {
-		log.Printf("failed to query listings: %v", err)
+		lh.logger.Error("listing query error", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -45,14 +47,15 @@ func (lh ListingHandler) GetListings(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var l listing
 		if err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.City, &l.CreatedAt); err != nil {
-			log.Printf("rows.Err:%v", err)
+			lh.logger.Error("rows scan error", "error", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		listings = append(listings, l)
 	}
+	lh.logger.Info("listings fetched", "total", len(listings))
 	if err := rows.Err(); err != nil {
-		log.Printf("rows.Err:%v", err)
+		lh.logger.Error("row error", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -69,7 +72,7 @@ func (lh ListingHandler) DeleteListing(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, err := lh.db.ExecContext(ctx, `DELETE FROM listings WHERE id = $1`, id)
 	if err != nil {
-		log.Printf("delete: %v", err)
+		lh.logger.Error("delete failed", "listing_id", id, "err", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 

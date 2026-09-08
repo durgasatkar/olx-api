@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/durgasatkar/olx-api/internal/config"
@@ -16,8 +18,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("main.db.connect: %v", err)
 	}
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelInfo,
+	})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 	mux := http.NewServeMux()
-	lh := handlers.NewListingHandler(db)
+	lh := handlers.NewListingHandler(db, logger)
 	mux.HandleFunc("GET /healthz", handlers.Health)
 	mux.HandleFunc("GET /listings", lh.GetListings)
 	mux.HandleFunc("DELETE /listings/{id}", lh.DeleteListing)
