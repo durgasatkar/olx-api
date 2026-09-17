@@ -7,12 +7,20 @@ import (
 	"os"
 	"time"
 
+	// CRITICAL: Import your generated docs folder so it initializes
+	_ "github.com/durgasatkar/olx-api/docs"
 	"github.com/durgasatkar/olx-api/internal/config"
 	"github.com/durgasatkar/olx-api/internal/db"
 	"github.com/durgasatkar/olx-api/internal/handlers"
 	"github.com/durgasatkar/olx-api/internal/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title			OLX API
+// @version		1.0
+// @description	This is the API server for the OLX application.
+// @host			localhost:8080
+// @BasePath		/
 func main() {
 	cfg := config.MustLoad()
 	db, err := db.Connect(cfg.DatabaseUrl)
@@ -27,8 +35,10 @@ func main() {
 	slog.SetDefault(logger)
 	mux := http.NewServeMux()
 	lh := handlers.NewListingHandler(db, logger)
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 	mux.HandleFunc("GET /healthz", handlers.Health)
 	mux.HandleFunc("GET /listings", lh.GetListings)
+	mux.HandleFunc("POST /listings", lh.CreateListing)
 	mux.HandleFunc("DELETE /listings/{id}", lh.DeleteListing)
 
 	handler := middleware.RequestId(mux)

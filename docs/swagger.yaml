@@ -1,0 +1,121 @@
+basePath: /
+definitions:
+  handlers.CreateListingRequest:
+    properties:
+      city:
+        type: string
+      description:
+        type: string
+      price:
+        type: integer
+      title:
+        type: string
+    type: object
+  handlers.CreateListingResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      title:
+        type: string
+    type: object
+  handlers.Listing:
+    properties:
+      city:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      price:
+        type: integer
+      title:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is the API server for the OLX application.
+  title: OLX API
+  version: "1.0"
+paths:
+  /listings:
+    get:
+      consumes:
+      - application/json
+      description: Fetches the top 10 most recent classified listings ordered by creation
+        date.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Listing'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get recent listings
+      tags:
+      - listings
+    post:
+      consumes:
+      - application/json
+      description: Submits and registers a new item listing to the marketplace.
+      parameters:
+      - description: Listing Object Details
+        in: body
+        name: listing
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateListingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateListingResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new listing
+      tags:
+      - listings
+  /listings/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Removes an active item listing from the platform using its unique
+        ID.
+      parameters:
+      - description: Listing Unique Identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ok
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a listing
+      tags:
+      - listings
+swagger: "2.0"

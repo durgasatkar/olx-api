@@ -23,7 +23,9 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
-    # Notice: No "ports" mapping here! It keeps your database hidden from outside hackers.
+    # ADD THIS LINE RIGHT HERE:
+    ports:
+      - "127.0.0.1:5432:5432" # Secures it to localhost only; hidden from public web!
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
     healthcheck:
